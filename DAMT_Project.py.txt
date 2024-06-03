@@ -1,0 +1,164 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+import matplotlib.pyplot as plt
+import seaborn as sns
+import time
+
+
+
+
+
+#Import Data
+file_path = '/content/Book1.xlsx'
+data = pd.read_excel(file_path)
+data.head()
+print(data)
+
+
+#Class Distribution (To check if data is Bias)
+# plotting bar graph
+plt.figure(figsize=(10, 6))
+sns.countplot(x='NObeyesdad', data=data)
+plt.title('Class Distribution')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.show()
+
+
+
+print('-----------Decision Tree--------------')
+# Decision Tree Classifier
+
+# Identify and columns with non-numeric data types for decision tree...
+# Load the dataset
+dataset_path = '/content/Book1.xlsx'
+df = pd.read_excel(dataset_path)
+non_numeric_columns = df.select_dtypes(exclude=['number']).columns
+print("Non-numeric columns:", non_numeric_columns)
+numeric_df = df.drop(non_numeric_columns.difference(['NObeyesdad']), axis=1)
+X = numeric_df.drop('NObeyesdad', axis=1)
+y = numeric_df['NObeyesdad']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+# Decision Tree Classifier
+start = time.time()
+dt_classifier = DecisionTreeClassifier()
+dt_classifier.fit(X_train, y_train)
+end = time.time()
+print(f'Training time: {end-start:.2f} seconds')
+
+dt_predictions = dt_classifier.predict(X_test)
+dt_accuracy = accuracy_score(y_test, dt_predictions)
+print("Decision Tree Accuracy:", dt_accuracy)
+
+dt_classification_report = classification_report(y_test, dt_predictions)
+print("Classification Report for Decision Tree:\n", dt_classification_report)
+
+# Confusion Matrix for Decision Tree
+cm_dt = confusion_matrix(y_test, dt_predictions)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm_dt, annot=True, fmt='d', cmap='Blues', xticklabels=dt_classifier.classes_, yticklabels=dt_classifier.classes_)
+plt.title('Confusion Matrix for Decision Tree')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+
+
+
+print('-------------- SVM ------------------')
+#Support Vector Machine (SVM)
+dataset_path = '/content/Book1.xlsx'
+df = pd.read_excel(dataset_path)
+non_numeric_columns = df.select_dtypes(exclude=['number']).columns
+numeric_df = df.drop(non_numeric_columns.difference(['NObeyesdad']), axis=1)
+X = numeric_df.drop('NObeyesdad', axis=1)
+y = numeric_df['NObeyesdad']
+
+le = LabelEncoder()
+y_encoded = le.fit_transform(y)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, stratify=y_encoded, random_state=42)
+
+# Support Vector Machine Classifier
+start1 = time.time()
+svm_classifier = SVC(kernel='linear', C=1.0)
+svm_classifier.fit(X_train, y_train)
+end1 = time.time()
+print(f"Training time: {end1-start1}")
+
+svm_predictions = svm_classifier.predict(X_test)
+svm_accuracy = accuracy_score(y_test, svm_predictions)
+print("SVM Accuracy:", svm_accuracy)
+
+svm_classification_report = classification_report(y_test, svm_predictions)
+print("Classification Report for SVM:\n", svm_classification_report)
+print("Number of Features:", X.shape[1])
+print(X.columns)
+
+cm_svm = confusion_matrix(y_test, svm_predictions)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm_svm, annot=True, fmt='d', cmap='Blues', xticklabels=le.classes_, yticklabels=le.classes_)
+plt.title('Confusion Matrix for SVM')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+
+
+print('-------------- Random Forest ------------------')
+#Random Forest
+start2 = time.time()
+random_forest_model = RandomForestClassifier(random_state=42)
+random_forest_model.fit(X_train, y_train)
+end2 = time.time()
+print(f"Training Time: {end2-start2}")
+
+y_pred_rf = random_forest_model.predict(X_test)
+
+accuracy_rf = accuracy_score(y_test, y_pred_rf)
+classification_rep_rf = classification_report(y_test, y_pred_rf)
+
+print(f"Random Forest Accuracy: {accuracy_rf}")
+print(f"Classification Report for Random Forest:\n{classification_rep_rf}")
+
+cm_rf = confusion_matrix(y_test, y_pred_rf)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm_rf, annot=True, fmt='d', cmap='Blues', xticklabels=le.classes_, yticklabels=le.classes_)
+plt.title('Confusion Matrix for Random Forest')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+
+
+print("---------------KNN N=5-----------------")
+#KNN
+start3 = time.time()
+knn_classifier = KNeighborsClassifier(n_neighbors=5)
+knn_classifier.fit(X_train, y_train)
+end3 = time.time()
+print(f"Training Time {end3-start3}")
+
+knn_predictions = knn_classifier.predict(X_test)
+
+knn_accuracy = accuracy_score(y_test, knn_predictions)
+print("KNN Accuracy:", knn_accuracy)
+
+knn_classification_report = classification_report(y_test, knn_predictions)
+print("Classification Report for KNN:\n", knn_classification_report)
+
+cm_knn = confusion_matrix(y_test, knn_predictions)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm_knn, annot=True, fmt='d', cmap='Blues', xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
+plt.title('Confusion Matrix for KNN')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
